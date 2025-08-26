@@ -1,3 +1,5 @@
+// ignore_for_file: unnecessary_this
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simple_beautiful_checklist_exercise/data/database_repository.dart';
@@ -6,11 +8,6 @@ class SharedPreferencesRepository implements DatabaseRepository {
   final SharedPreferences? _prefs;
 
   const SharedPreferencesRepository(this._prefs);
-
-  // Simulierte Datenbank mit einer Liste von Strings.
-  // In einer echten App würden hier Daten aus einer Datenbank oder SharedPreferences geladen werden.
-
-  // Reminder: Jede Methode muss erst sicherstellen, dass _prefs wirklich vor Methodenverarbeitung initialisiert wurde.
 
   @override
   Future<int> getItemCount() async {
