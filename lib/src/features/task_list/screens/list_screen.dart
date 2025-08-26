@@ -45,7 +45,15 @@ class _ListScreenState extends State<ListScreen> {
               children: [
                 Expanded(
                   child: _items.isEmpty
-                      ? const EmptyContent()
+                      ? Column(
+                          children: [
+                            Text(
+                              '🙂 \n Alle Aufgaben erledigt!',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontSize: 18),
+                            ),
+                          ],
+                        )
                       : ItemList(
                           repository: widget.repository,
                           items: _items,

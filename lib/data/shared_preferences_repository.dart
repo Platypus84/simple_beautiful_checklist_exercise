@@ -19,9 +19,6 @@ class SharedPreferencesRepository implements DatabaseRepository {
     List<String> items = this._prefs?.getStringList('items') ?? [];
     debugPrint('Geladene Items: $items');
 
-    if (items.isEmpty) {
-      return ['Keine Item Liste'];
-    }
     return items;
   }
 
