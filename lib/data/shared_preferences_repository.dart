@@ -12,15 +12,41 @@ class SharedPreferencesRepository implements DatabaseRepository {
     _prefs = await SharedPreferences.getInstance();
   }
 
+  Future<SharedPreferences> get prefs async {
+    _prefs ??= await SharedPreferences.getInstance();
+    return _prefs!;
+  }
+
+  @override
+  Future<int> getItemCount() async {
+    final preferences = await prefs;
+    return preferences.getInt('itemCount') ?? 0;
+  }
+
+  @override
+  Future<List<String>> getItems() async {
+    final preferences = await prefs;
+    List<String> items = preferences.getStringList('items') ?? [];
+    debugPrint('Geladene Items: $items');
+
+    if (items.isEmpty) {
+      return ['Keine Item Liste'];
+    }
+    return items;
+  }
+
   @override
   Future<void> addItem(String newValue) async {
     try {
       debugPrint('Value ist: $newValue');
-      List<String> currentItemList = _prefs?.getStringList('items') ?? [];
+      final preferences = await prefs;
+      List<String> currentItemList = preferences.getStringList('items') ?? [];
+
       if (newValue.isNotEmpty && !currentItemList.contains(newValue)) {
         currentItemList.add(newValue);
-        await _prefs?.setStringList('items', currentItemList);
-        await _prefs?.setInt('itemCount', currentItemList.length);
+        await preferences.setStringList('items', currentItemList);
+        await preferences.setInt('itemCount', currentItemList.length);
+        debugPrint('Item gespeichert. Neue Liste: $currentItemList');
       }
     } catch (e) {
       debugPrint("Fehler beim Speichern des Items: $e");
@@ -28,26 +54,42 @@ class SharedPreferencesRepository implements DatabaseRepository {
   }
 
   @override
-  Future<int> getItemCount() async {
-    return _prefs?.getInt('itemCount') ?? 0;
-  }
-
-  @override
-  Future<List<String>> getItems() async {
-    return _prefs?.getStringList('items') ?? ['No Item List'];
-  }
-
-  @override
   Future<void> deleteItem(int index) async {
-    await _prefs?.remove('items'[index]);
+    try {
+      final preferences = await prefs;
+      List<String> currentItemList = preferences.getStringList('items') ?? [];
+
+      if (index >= 0 && index < currentItemList.length) {
+        currentItemList.removeAt(index);
+        await preferences.setStringList('items', currentItemList);
+        await preferences.setInt('itemCount', currentItemList.length);
+        debugPrint(
+          'Item an Index $index gelöscht. Neue Liste: $currentItemList',
+        );
+      }
+    } catch (e) {
+      debugPrint("Fehler beim Löschen des Items: $e");
+    }
   }
 
   @override
   Future<void> editItem(int index, String newItem) async {
-    // make sure not empty and not same as other
-    if (newItem.isNotEmpty &&
-        !_prefs!.getStringList('items')!.contains(newItem)) {
-      await _prefs?.setStringList('items'[index], [newItem]);
+    try {
+      final preferences = await prefs;
+      List<String> currentItemList = preferences.getStringList('items') ?? [];
+
+      if (index >= 0 &&
+          index < currentItemList.length &&
+          newItem.isNotEmpty &&
+          !currentItemList.contains(newItem)) {
+        currentItemList[index] = newItem;
+        await preferences.setStringList('items', currentItemList);
+        debugPrint(
+          'Item mit Index $index bearbeitet. Neue Liste: $currentItemList',
+        );
+      }
+    } catch (e) {
+      debugPrint("Fehler beim Bearbeiten des Items: $e");
     }
   }
 }
