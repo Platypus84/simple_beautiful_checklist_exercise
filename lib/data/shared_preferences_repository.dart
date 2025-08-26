@@ -3,30 +3,23 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simple_beautiful_checklist_exercise/data/database_repository.dart';
 
 class SharedPreferencesRepository implements DatabaseRepository {
-  SharedPreferences? _prefs;
+  final SharedPreferences? _prefs;
+
+  const SharedPreferencesRepository(this._prefs);
 
   // Simulierte Datenbank mit einer Liste von Strings.
   // In einer echten App würden hier Daten aus einer Datenbank oder SharedPreferences geladen werden.
 
-  Future<void> initSharedPrefs() async {
-    _prefs = await SharedPreferences.getInstance();
-  }
-
-  Future<SharedPreferences> get prefs async {
-    _prefs ??= await SharedPreferences.getInstance();
-    return _prefs!;
-  }
+  // Reminder: Jede Methode muss erst sicherstellen, dass _prefs wirklich vor Methodenverarbeitung initialisiert wurde.
 
   @override
   Future<int> getItemCount() async {
-    final preferences = await prefs;
-    return preferences.getInt('itemCount') ?? 0;
+    return this._prefs?.getInt('itemCount') ?? 0;
   }
 
   @override
   Future<List<String>> getItems() async {
-    final preferences = await prefs;
-    List<String> items = preferences.getStringList('items') ?? [];
+    List<String> items = this._prefs?.getStringList('items') ?? [];
     debugPrint('Geladene Items: $items');
 
     if (items.isEmpty) {
@@ -35,17 +28,18 @@ class SharedPreferencesRepository implements DatabaseRepository {
     return items;
   }
 
+  // Reminder: Man kann Werte in einer sharded Pref Liste nicht mittels eines Index wie bei einer List oder Array ansprechen und somit keine Werte editieren, löschen oder hinzufügen.
+  // Man muss die alte shared pref List erst in eine lokale Liste laden, diese nach Wunsch bearbeiten (add/edit/delete) und danach dann wieder unter demselben Namen komplett neu als shared pref Liste abspeichern (alte Liste mit neuer überschreiben)
   @override
   Future<void> addItem(String newValue) async {
     try {
       debugPrint('Value ist: $newValue');
-      final preferences = await prefs;
-      List<String> currentItemList = preferences.getStringList('items') ?? [];
+      List<String> currentItemList = this._prefs?.getStringList('items') ?? [];
 
       if (newValue.isNotEmpty && !currentItemList.contains(newValue)) {
         currentItemList.add(newValue);
-        await preferences.setStringList('items', currentItemList);
-        await preferences.setInt('itemCount', currentItemList.length);
+        await this._prefs?.setStringList('items', currentItemList);
+        await this._prefs?.setInt('itemCount', currentItemList.length);
         debugPrint('Item gespeichert. Neue Liste: $currentItemList');
       }
     } catch (e) {
@@ -56,13 +50,12 @@ class SharedPreferencesRepository implements DatabaseRepository {
   @override
   Future<void> deleteItem(int index) async {
     try {
-      final preferences = await prefs;
-      List<String> currentItemList = preferences.getStringList('items') ?? [];
+      List<String> currentItemList = this._prefs?.getStringList('items') ?? [];
 
       if (index >= 0 && index < currentItemList.length) {
         currentItemList.removeAt(index);
-        await preferences.setStringList('items', currentItemList);
-        await preferences.setInt('itemCount', currentItemList.length);
+        await this._prefs?.setStringList('items', currentItemList);
+        await this._prefs?.setInt('itemCount', currentItemList.length);
         debugPrint(
           'Item an Index $index gelöscht. Neue Liste: $currentItemList',
         );
@@ -75,15 +68,14 @@ class SharedPreferencesRepository implements DatabaseRepository {
   @override
   Future<void> editItem(int index, String newItem) async {
     try {
-      final preferences = await prefs;
-      List<String> currentItemList = preferences.getStringList('items') ?? [];
+      List<String> currentItemList = this._prefs?.getStringList('items') ?? [];
 
       if (index >= 0 &&
           index < currentItemList.length &&
           newItem.isNotEmpty &&
           !currentItemList.contains(newItem)) {
         currentItemList[index] = newItem;
-        await preferences.setStringList('items', currentItemList);
+        await this._prefs?.setStringList('items', currentItemList);
         debugPrint(
           'Item mit Index $index bearbeitet. Neue Liste: $currentItemList',
         );
